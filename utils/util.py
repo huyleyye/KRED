@@ -54,12 +54,20 @@ def prepare_device(n_gpu_use):
 
 def construct_adj(graph_file, entity2id_file, args):#graph is triple
     print('constructing adjacency matrix ...')
-    graph_file_fp = open(graph_file, 'r', encoding='utf-8')
+    # graph_file_fp = open(graph_file, 'r', encoding='utf-8')
+    # graph = []
+    # for line in graph_file_fp:
+    #     linesplit = line.split('\n')[0].split('\t')
+    #     if len(linesplit) > 1:
+    #         graph.append([linesplit[0], linesplit[2], linesplit[1]])
+    
     graph = []
-    for line in graph_file_fp:
-        linesplit = line.split('\n')[0].split('\t')
-        if len(linesplit) > 1:
-            graph.append([linesplit[0], linesplit[2], linesplit[1]])
+    with open(graph_file, 'r', encoding='utf-8') as graph_file_fp:
+        for line in graph_file_fp:
+            linesplit = line.split('\n')[0].split('\t')
+            if len(linesplit) > 1:
+                graph.append([linesplit[0], linesplit[2], linesplit[1]])
+
 
     kg = {}
     for triple in graph:
@@ -74,8 +82,12 @@ def construct_adj(graph_file, entity2id_file, args):#graph is triple
             kg[tail] = []
         kg[tail].append((head, relation))
 
-    fp_entity2id = open(entity2id_file, 'r', encoding='utf-8')
-    entity_num = int(fp_entity2id.readline().split('\n')[0])
+    # fp_entity2id = open(entity2id_file, 'r', encoding='utf-8')
+    # entity_num = int(fp_entity2id.readline().split('\n')[0])
+    
+    with open(entity2id_file, 'r', encoding='utf-8') as fp_entity2id:
+        entity_num = int(fp_entity2id.readline().split('\n')[0])
+
     entity_adj = []
     relation_adj = []
     for i in range(entity_num):
@@ -93,29 +105,49 @@ def construct_embedding(entity_embedding_file, relation_embedding_file):
     print('constructing embedding ...')
     entity_embedding = []
     relation_embedding = []
-    fp_entity_embedding = open(entity_embedding_file, 'r', encoding='utf-8')
-    fp_relation_embedding = open(relation_embedding_file, 'r', encoding='utf-8')
-    for line in fp_entity_embedding:
+    # fp_entity_embedding = open(entity_embedding_file, 'r', encoding='utf-8')
+    # fp_relation_embedding = open(relation_embedding_file, 'r', encoding='utf-8')
+    # for line in fp_entity_embedding:
+    #     linesplit = line.strip().split('\t')
+    #     linesplit = [float(i) for i in linesplit]
+    #     entity_embedding.append(linesplit)
+    # for line in fp_relation_embedding:
+    #     linesplit = line.strip().split('\t')
+    #     linesplit = [float(i) for i in linesplit]
+    #     relation_embedding.append(linesplit)
+
+    with open(entity_embedding_file, 'r', encoding='utf-8') as fp_entity_embedding:
+        for line in fp_entity_embedding:
         linesplit = line.strip().split('\t')
         linesplit = [float(i) for i in linesplit]
         entity_embedding.append(linesplit)
-    for line in fp_relation_embedding:
+    
+    with open (relation_embedding_file, 'r', encoding='utf-8') as fp_relation_embedding:
+        for line in fp_relation_embedding:
         linesplit = line.strip().split('\t')
         linesplit = [float(i) for i in linesplit]
         relation_embedding.append(linesplit)
+
     return torch.FloatTensor(entity_embedding), torch.FloatTensor(relation_embedding)
 
 def my_collate_fn(batch):
     return batch
 
 def construct_entity_dict(entity_file):
-    fp_entity2id = open(entity_file, 'r', encoding='utf-8')
+    # fp_entity2id = open(entity_file, 'r', encoding='utf-8')
+    # entity_dict = {}
+    # entity_num_all = int(fp_entity2id.readline().split('\n')[0])
+    # lines = fp_entity2id.readlines()
+    # for line in lines:
+    #     entity, entityid = line.strip().split('\t')
+    #     entity_dict[entity] = entityid
+    
     entity_dict = {}
-    entity_num_all = int(fp_entity2id.readline().split('\n')[0])
-    lines = fp_entity2id.readlines()
-    for line in lines:
-        entity, entityid = line.strip().split('\t')
-        entity_dict[entity] = entityid
+    with open(entity_file, 'r', encoding='utf-8') as fp_entity2id:
+         entity_num_all = int(fp_entity2id.readline().split('\n')[0])
+         for line in fp_entity2id:
+             entity, entityid = line.strip().split('\t')
+             entity_dict[entity] = entityid
     return entity_dict
 
 def real_batch(batch):
@@ -239,33 +271,61 @@ def get_user2item_data(config):
     user_id = []
     news_id = []
     label = []
-    fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
-    for line in fp_train:
-        index, userid, imp_time, history, behavior = line.strip().split('\t')
-        behavior = behavior.split(' ')
-        positive_list = []
-        negative_list = []
-        for news in behavior:
-            newsid, news_label = news.split('-')
-            if news_label == "1":
-                positive_list.append(newsid)
-            else:
-                negative_list.append(newsid)
-        for pos_news in positive_list:
-            user_id.append(userid+ "_train")
-            if len(negative_list) >= negative_num:
-                neg_news = random.sample(negative_list, negative_num)
-            else:
-                neg_news = negative_list
-                for i in range(negative_num - len(negative_list)):
-                    neg_news.append("N0")
-            all_news = neg_news
-            all_news.append(pos_news)
-            news_id.append(all_news)
-            label.append([])
-            for i in range(negative_num):
-                label[-1].append(0)
-            label[-1].append(1)
+    # fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
+    # for line in fp_train:
+    #     index, userid, imp_time, history, behavior = line.strip().split('\t')
+    #     behavior = behavior.split(' ')
+    #     positive_list = []
+    #     negative_list = []
+    #     for news in behavior:
+    #         newsid, news_label = news.split('-')
+    #         if news_label == "1":
+    #             positive_list.append(newsid)
+    #         else:
+    #             negative_list.append(newsid)
+    #     for pos_news in positive_list:
+    #         user_id.append(userid+ "_train")
+    #         if len(negative_list) >= negative_num:
+    #             neg_news = random.sample(negative_list, negative_num)
+    #         else:
+    #             neg_news = negative_list
+    #             for i in range(negative_num - len(negative_list)):
+    #                 neg_news.append("N0")
+    #         all_news = neg_news
+    #         all_news.append(pos_news)
+    #         news_id.append(all_news)
+    #         label.append([])
+    #         for i in range(negative_num):
+    #             label[-1].append(0)
+    #         label[-1].append(1)
+
+    with open(config['data']['train_behavior'], 'r', encoding='utf-8') as fp_train:
+        for line in fp_train:
+            index, userid, imp_time, history, behavior = line.strip().split('\t')
+            behavior = behavior.split(' ')
+            positive_list = []
+            negative_list = []
+            for news in behavior:
+                newsid, news_label = news.split('-')
+                if news_label == "1":
+                    positive_list.append(newsid)
+                else:
+                    negative_list.append(newsid)
+            for pos_news in positive_list:
+                user_id.append(userid+ "_train")
+                if len(negative_list) >= negative_num:
+                    neg_news = random.sample(negative_list, negative_num)
+                else:
+                    neg_news = negative_list
+                    for i in range(negative_num - len(negative_list)):
+                        neg_news.append("N0")
+                all_news = neg_news
+                all_news.append(pos_news)
+                news_id.append(all_news)
+                label.append([])
+                for i in range(negative_num):
+                    label[-1].append(0)
+                label[-1].append(1)
 
     train_data['item1'] = user_id
     train_data['item2'] = news_id
@@ -276,21 +336,36 @@ def get_user2item_data(config):
     user_id = []
     news_id = []
     label = []
-    fp_dev = open(config['data']['valid_behavior'], 'r', encoding='utf-8')
-    for line in fp_dev:
-        index, userid, imp_time, history, behavior = line.strip().split('\t')
-        behavior = behavior.split(' ')
-        for news in behavior:
-            newsid, news_label = news.split('-')
-            session_id.append(index)
-            user_id.append(userid+ "_dev")
-            if news_label == "1":
-                news_id.append(newsid)
-                label.append(1.0)
-            else:
-                news_id.append(newsid)
-                label.append(0.0)
+    # fp_dev = open(config['data']['valid_behavior'], 'r', encoding='utf-8')
+    # for line in fp_dev:
+    #     index, userid, imp_time, history, behavior = line.strip().split('\t')
+    #     behavior = behavior.split(' ')
+    #     for news in behavior:
+    #         newsid, news_label = news.split('-')
+    #         session_id.append(index)
+    #         user_id.append(userid+ "_dev")
+    #         if news_label == "1":
+    #             news_id.append(newsid)
+    #             label.append(1.0)
+    #         else:
+    #             news_id.append(newsid)
+    #             label.append(0.0)
 
+    with open(config['data']['valid_behavior'], 'r', encoding='utf-8') as fp_dev:
+        for line in fp_dev:
+            index, userid, imp_time, history, behavior = line.strip().split('\t')
+            behavior = behavior.split(' ')
+            for news in behavior:
+                newsid, news_label = news.split('-')
+                session_id.append(index)
+                user_id.append(userid+ "_dev")
+                if news_label == "1":
+                    news_id.append(newsid)
+                    label.append(1.0)
+                else:
+                    news_id.append(newsid)
+                    label.append(0.0)
+    
     dev_data['item1'] = user_id
     dev_data['session_id'] = session_id
     dev_data['item2'] = news_id
@@ -300,52 +375,93 @@ def get_user2item_data(config):
 
 def build_user_history(config):
     user_history_dict = {}
-    fp_train_behavior = open(config['data']['train_behavior'], 'r', encoding='utf-8')
-    for line in fp_train_behavior:
-        index, user_id, imp_time, history, behavior = line.strip().split('\t')
-        if len(history.split(' ')) >= config['model']['user_his_num']:
-            user_history_dict[user_id+"_train"] = history.split(' ')[:config['model']['user_his_num']]
-        else:
-            user_history_dict[user_id + "_train"] = history.split(' ')
-            for i in range(config['model']['user_his_num']-len(history.split(' '))):
-                user_history_dict[user_id + "_train"].append("N0")
-            if user_history_dict[user_id + "_train"][0] == '':
-                user_history_dict[user_id + "_train"][0] = 'N0'
+    # fp_train_behavior = open(config['data']['train_behavior'], 'r', encoding='utf-8')
+    # for line in fp_train_behavior:
+    #     index, user_id, imp_time, history, behavior = line.strip().split('\t')
+    #     if len(history.split(' ')) >= config['model']['user_his_num']:
+    #         user_history_dict[user_id+"_train"] = history.split(' ')[:config['model']['user_his_num']]
+    #     else:
+    #         user_history_dict[user_id + "_train"] = history.split(' ')
+    #         for i in range(config['model']['user_his_num']-len(history.split(' '))):
+    #             user_history_dict[user_id + "_train"].append("N0")
+    #         if user_history_dict[user_id + "_train"][0] == '':
+    #             user_history_dict[user_id + "_train"][0] = 'N0'
 
-    fp_dev_behavior = open(config['data']['valid_behavior'], 'r', encoding='utf-8')
-    for line in fp_dev_behavior:
-        index, user_id, imp_time, history, behavior = line.strip().split('\t')
-        if len(history.split(' ')) >= config['model']['user_his_num']:
-            user_history_dict[user_id+"_dev"] = history.split(' ')[:config['model']['user_his_num']]
-        else:
-            user_history_dict[user_id + "_dev"] = history.split(' ')
-            for i in range(config['model']['user_his_num']-len(history.split(' '))):
-                user_history_dict[user_id + "_dev"].append("N0")
-            if user_history_dict[user_id + "_dev"][0] == '':
-                user_history_dict[user_id + "_dev"][0] = 'N0'
+    with open(config['data']['train_behavior'], 'r', encoding='utf-8') as fp_train_behavior:
+        for line in fp_train_behavior:
+            index, user_id, imp_time, history, behavior = line.strip().split('\t')
+            if len(history.split(' ')) >= config['model']['user_his_num']:
+                user_history_dict[user_id+"_train"] = history.split(' ')[:config['model']['user_his_num']]
+            else:
+                user_history_dict[user_id + "_train"] = history.split(' ')
+                for i in range(config['model']['user_his_num']-len(history.split(' '))):
+                    user_history_dict[user_id + "_train"].append("N0")
+                if user_history_dict[user_id + "_train"][0] == '':
+                    user_history_dict[user_id + "_train"][0] = 'N0'
+
+    # fp_dev_behavior = open(config['data']['valid_behavior'], 'r', encoding='utf-8')
+    # for line in fp_dev_behavior:
+    #     index, user_id, imp_time, history, behavior = line.strip().split('\t')
+    #     if len(history.split(' ')) >= config['model']['user_his_num']:
+    #         user_history_dict[user_id+"_dev"] = history.split(' ')[:config['model']['user_his_num']]
+    #     else:
+    #         user_history_dict[user_id + "_dev"] = history.split(' ')
+    #         for i in range(config['model']['user_his_num']-len(history.split(' '))):
+    #             user_history_dict[user_id + "_dev"].append("N0")
+    #         if user_history_dict[user_id + "_dev"][0] == '':
+    #             user_history_dict[user_id + "_dev"][0] = 'N0'
+    
+    with open(config['data']['valid_behavior'], 'r', encoding='utf-8') as fp_dev_behavior:
+        for line in fp_dev_behavior:
+            index, user_id, imp_time, history, behavior = line.strip().split('\t')
+            if len(history.split(' ')) >= config['model']['user_his_num']:
+                user_history_dict[user_id+"_dev"] = history.split(' ')[:config['model']['user_his_num']]
+            else:
+                user_history_dict[user_id + "_dev"] = history.split(' ')
+                for i in range(config['model']['user_his_num']-len(history.split(' '))):
+                    user_history_dict[user_id + "_dev"].append("N0")
+                if user_history_dict[user_id + "_dev"][0] == '':
+                    user_history_dict[user_id + "_dev"][0] = 'N0'
     return user_history_dict
 
 def build_news_features_mind(config):
     entity2id_dict = {}
-    fp_entity2id = open(config['data']['entity_index'], 'r', encoding='utf-8')
-    entity_num = int(fp_entity2id.readline().split('\n')[0])
-    for line in fp_entity2id.readlines():
-        entity, entityid = line.strip().split('\t')
-        entity2id_dict[entity] = int(entityid) + 1
+    # fp_entity2id = open(config['data']['entity_index'], 'r', encoding='utf-8')
+    # entity_num = int(fp_entity2id.readline().split('\n')[0])
+    # for line in fp_entity2id.readlines():
+    #     entity, entityid = line.strip().split('\t')
+    #     entity2id_dict[entity] = int(entityid) + 1
+    
+    with open(config['data']['entity_index'], 'r', encoding='utf-8') as fp_entity2id:
+        entity_num = int(fp_entity2id.readline().split('\n')[0])
+        for line in fp_entity2id:
+            entity, entityid = line.strip().split('\t')
+            entity2id_dict[entity] = int(entityid) + 1
 
     news_features = {}
 
     news_feature_dict = {}
-    fp_train_news = open(config['data']['train_news'], 'r', encoding='utf-8')
-    for line in fp_train_news:
-        newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
-        news_feature_dict[newsid] = (title+" "+abstract, entity_info_title, entity_info_abstract)
+    # fp_train_news = open(config['data']['train_news'], 'r', encoding='utf-8')
+    # for line in fp_train_news:
+    #     newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+    #     news_feature_dict[newsid] = (title+" "+abstract, entity_info_title, entity_info_abstract)
+    
+    with open(config['data']['train_news'], 'r', encoding='utf-8') as fp_train_news:
+        for line in fp_train_news:
+            newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+            news_feature_dict[newsid] = (title+" "+abstract, entity_info_title, entity_info_abstract)
+    
     # entityid, entity_freq, entity_position, entity_type
-    fp_dev_news = open(config['data']['valid_news'], 'r', encoding='utf-8')
-    for line in fp_dev_news:
-        newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
-        news_feature_dict[newsid] = (title + " " + abstract, entity_info_title, entity_info_abstract)
+    # fp_dev_news = open(config['data']['valid_news'], 'r', encoding='utf-8')
+    # for line in fp_dev_news:
+    #     newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+    #     news_feature_dict[newsid] = (title + " " + abstract, entity_info_title, entity_info_abstract)
 
+    with open(config['data']['valid_news'], 'r', encoding='utf-8') as fp_dev_news:
+        for line in fp_dev_news:
+            newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+            news_feature_dict[newsid] = (title + " " + abstract, entity_info_title, entity_info_abstract)
+    
     #deal with doc feature
     entity_type_dict = {}
     entity_type_index = 1
@@ -394,11 +510,17 @@ def build_news_features_mind(config):
 
 def construct_adj_mind(config):#graph is triple
     print('constructing adjacency matrix ...')
-    graph_file_fp = open(config['data']['knowledge_graph'], 'r', encoding='utf-8')
+    # graph_file_fp = open(config['data']['knowledge_graph'], 'r', encoding='utf-8')
+    # graph = []
+    # for line in graph_file_fp:
+    #     linesplit = line.split('\n')[0].split('\t')
+    #     graph.append([int(linesplit[0])+1, int(linesplit[2])+1, int(linesplit[1])+1])
+    
     graph = []
-    for line in graph_file_fp:
-        linesplit = line.split('\n')[0].split('\t')
-        graph.append([int(linesplit[0])+1, int(linesplit[2])+1, int(linesplit[1])+1])
+    with open(config['data']['knowledge_graph'], 'r', encoding='utf-8') as graph_file_fp:
+        for line in graph_file_fp:
+            linesplit = line.split('\n')[0].split('\t')
+            graph.append([int(linesplit[0])+1, int(linesplit[2])+1, int(linesplit[1])+1])
     kg = {}
     for triple in graph:
         head = triple[0]
@@ -412,8 +534,12 @@ def construct_adj_mind(config):#graph is triple
             kg[tail] = []
         kg[tail].append((head, relation))
 
-    fp_entity2id = open(config['data']['entity_index'], 'r', encoding='utf-8')
-    entity_num = int(fp_entity2id.readline().split('\n')[0])+1
+    # fp_entity2id = open(config['data']['entity_index'], 'r', encoding='utf-8')
+    # entity_num = int(fp_entity2id.readline().split('\n')[0])+1
+    
+    with open(config['data']['entity_index'], 'r', encoding='utf-8') as fp_entity2id:
+        entity_num = int(fp_entity2id.readline().split('\n')[0])+1
+
     entity_adj = []
     relation_adj = []
     for i in range(entity_num+1):
@@ -434,19 +560,30 @@ def construct_embedding_mind(config):
     print('constructing embedding ...')
     entity_embedding = []
     relation_embedding = []
-    fp_entity_embedding = open(config['data']['entity_embedding'], 'r', encoding='utf-8')
-    fp_relation_embedding = open(config['data']['relation_embedding'], 'r', encoding='utf-8')
+    # fp_entity_embedding = open(config['data']['entity_embedding'], 'r', encoding='utf-8')
+    # fp_relation_embedding = open(config['data']['relation_embedding'], 'r', encoding='utf-8')
     zero_array = np.zeros(config['model']['entity_embedding_dim'])
     entity_embedding.append(zero_array)
     relation_embedding.append(zero_array)
-    for line in fp_entity_embedding:
-        linesplit = line.strip().split('\t')
-        linesplit = [float(i) for i in linesplit]
-        entity_embedding.append(linesplit)
-    for line in fp_relation_embedding:
-        linesplit = line.strip().split('\t')
-        linesplit = [float(i) for i in linesplit]
-        relation_embedding.append(linesplit)
+    # for line in fp_entity_embedding:
+    #     linesplit = line.strip().split('\t')
+    #     linesplit = [float(i) for i in linesplit]
+    #     entity_embedding.append(linesplit)
+    # for line in fp_relation_embedding:
+    #     linesplit = line.strip().split('\t')
+    #     linesplit = [float(i) for i in linesplit]
+    #     relation_embedding.append(linesplit)
+    
+    with open(config['data']['entity_embedding'], 'r', encoding='utf-8') as fp_entity_embedding:
+        for line in fp_entity_embedding:
+            linesplit = line.strip().split('\t')
+            linesplit = [float(i) for i in linesplit]
+            entity_embedding.append(linesplit)
+    with open(config['data']['relation_embedding'], 'r', encoding='utf-8') as fp_relation_embedding:
+        for line in fp_relation_embedding:
+            linesplit = line.strip().split('\t')
+            linesplit = [float(i) for i in linesplit]
+            relation_embedding.append(linesplit)
     return torch.FloatTensor(entity_embedding), torch.FloatTensor(relation_embedding)
 
 def build_vert_data(config):
@@ -462,13 +599,21 @@ def build_vert_data(config):
     item1_list_dev = []
     item2_list_dev = []
     label_list_dev = []
-    fp_train_news = open(config['data']['train_news'], 'r', encoding='utf-8')
-    for line in fp_train_news:
-        newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
-        if vert not in vert_label_dict:
-            vert_label_dict[vert] = label_index
-            label_index = label_index + 1
-        all_news_data.append((newsid, vert_label_dict[vert]))
+    # fp_train_news = open(config['data']['train_news'], 'r', encoding='utf-8')
+    # for line in fp_train_news:
+    #     newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+    #     if vert not in vert_label_dict:
+    #         vert_label_dict[vert] = label_index
+    #         label_index = label_index + 1
+    #     all_news_data.append((newsid, vert_label_dict[vert]))
+    
+    with open(config['data']['train_news'], 'r', encoding='utf-8') as fp_train_news:
+        for line in fp_train_news:
+            newsid, vert, subvert, title, abstract, url, entity_info_title, entity_info_abstract = line.strip().split('\t')
+            if vert not in vert_label_dict:
+                vert_label_dict[vert] = label_index
+                label_index = label_index + 1
+            all_news_data.append((newsid, vert_label_dict[vert]))
     print(vert_label_dict)
     for i in range(len(all_news_data)):
         if random.random()<0.8:
@@ -489,30 +634,48 @@ def build_vert_data(config):
     return vert_train, vert_dev
 
 def build_pop_data(config):
-    fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
+    # fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
     news_imp_dict = {}
     pop_train = {}
     pop_test = {}
-    for line in fp_train:
-        index, userid, imp_time, history, behavior = line.strip().split('\t')
-        behavior = behavior.split(' ')
-        for news in behavior:
-            newsid, news_label = news.split('-')
-            if news_label == "1":
-                if newsid not in news_imp_dict:
-                    news_imp_dict[newsid] = [1,1]
+    # for line in fp_train:
+    #     index, userid, imp_time, history, behavior = line.strip().split('\t')
+    #     behavior = behavior.split(' ')
+    #     for news in behavior:
+    #         newsid, news_label = news.split('-')
+    #         if news_label == "1":
+    #             if newsid not in news_imp_dict:
+    #                 news_imp_dict[newsid] = [1,1]
+    #             else:
+    #                 news_imp_dict[newsid][0] = news_imp_dict[newsid][0] + 1
+    #                 news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
+    #         else:
+    #             if newsid not in news_imp_dict:
+    #                 news_imp_dict[newsid] = [0,1]
+    #             else:
+    #                 news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
+    
+    with open(config['data']['train_behavior'], 'r', encoding='utf-8') as fp_train:
+        for line in fp_train:
+            index, userid, imp_time, history, behavior = line.strip().split('\t')
+            behavior = behavior.split(' ')
+            for news in behavior:
+                newsid, news_label = news.split('-')
+                if news_label == "1":
+                    if newsid not in news_imp_dict:
+                        news_imp_dict[newsid] = [1,1]
+                    else:
+                        news_imp_dict[newsid][0] = news_imp_dict[newsid][0] + 1
+                        news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
                 else:
-                    news_imp_dict[newsid][0] = news_imp_dict[newsid][0] + 1
-                    news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
-            else:
-                if newsid not in news_imp_dict:
-                    news_imp_dict[newsid] = [0,1]
-                else:
-                    news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
+                    if newsid not in news_imp_dict:
+                        news_imp_dict[newsid] = [0,1]
+                    else:
+                        news_imp_dict[newsid][1] = news_imp_dict[newsid][1] + 1
     return pop_train, pop_test
 
 def build_item2item_data(config):
-    fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
+    # fp_train = open(config['data']['train_behavior'], 'r', encoding='utf-8')
     item2item_train = {}
     item2item_test = {}
     item1_train = []
@@ -525,27 +688,51 @@ def build_item2item_data(config):
     news_click_dict = {}
     doc_doc_dict = {}
     all_news_set = set()
-    for line in fp_train:
-        index, userid, imp_time, history, behavior = line.strip().split('\t')
-        behavior = behavior.split(' ')
-        if userid not in user_history_dict:
-            user_history_dict[userid] = set()
-        for news in behavior:
-            newsid, news_label = news.split('-')
-            all_news_set.add(newsid)
-            if news_label == "1":
+    # for line in fp_train:
+    #     index, userid, imp_time, history, behavior = line.strip().split('\t')
+    #     behavior = behavior.split(' ')
+    #     if userid not in user_history_dict:
+    #         user_history_dict[userid] = set()
+    #     for news in behavior:
+    #         newsid, news_label = news.split('-')
+    #         all_news_set.add(newsid)
+    #         if news_label == "1":
+    #             user_history_dict[userid].add(newsid)
+    #             if newsid not in news_click_dict:
+    #                 news_click_dict[newsid] = 1
+    #             else:
+    #                 news_click_dict[newsid] = news_click_dict[newsid] + 1
+    #     news = history.split(' ')
+    #     for newsid in news:
+    #         user_history_dict[userid].add(newsid)
+    #         if newsid not in news_click_dict:
+    #             news_click_dict[newsid] = 1
+    #         else:
+    #             news_click_dict[newsid] = news_click_dict[newsid] + 1
+    
+    with open(config['data']['train_behavior'], 'r', encoding='utf-8') as fp_train:
+        for line in fp_train:
+            index, userid, imp_time, history, behavior = line.strip().split('\t')
+            behavior = behavior.split(' ')
+            if userid not in user_history_dict:
+                user_history_dict[userid] = set()
+            for news in behavior:
+                newsid, news_label = news.split('-')
+                all_news_set.add(newsid)
+                if news_label == "1":
+                    user_history_dict[userid].add(newsid)
+                    if newsid not in news_click_dict:
+                        news_click_dict[newsid] = 1
+                    else:
+                        news_click_dict[newsid] = news_click_dict[newsid] + 1
+            news = history.split(' ')
+            for newsid in news:
                 user_history_dict[userid].add(newsid)
                 if newsid not in news_click_dict:
                     news_click_dict[newsid] = 1
                 else:
                     news_click_dict[newsid] = news_click_dict[newsid] + 1
-        news = history.split(' ')
-        for newsid in news:
-            user_history_dict[userid].add(newsid)
-            if newsid not in news_click_dict:
-                news_click_dict[newsid] = 1
-            else:
-                news_click_dict[newsid] = news_click_dict[newsid] + 1
+
     for user in user_history_dict:
         list_user_his = list(user_history_dict[user])
         for i in range(len(list_user_his) - 1):
