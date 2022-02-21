@@ -109,9 +109,10 @@ class Trainer(BaseTrainer):
         for epoch in range(self.start_epoch, self.epochs+1):
             print('training epoch ' + str(epoch) + ' / ' + str(self.epochs))
             self._train_epoch(epoch)
-            valid_socre = self._valid_epoch(epoch)
-            valid_scores.append(valid_socre)
-            early_stopping(valid_socre, self.model)
+            print('validating epoch ' + str(epoch) + ' / ' + str(self.epochs))
+            valid_score = self._valid_epoch(epoch)
+            valid_scores.append(valid_score)
+            early_stopping(valid_score, self.model)
             if early_stopping.early_stop:
                 logger_train.info("Early stopping")
 

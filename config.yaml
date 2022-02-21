@@ -3,7 +3,7 @@ n_gpu: 1
 data_loader:
     batch_size: 64
     shuffle: true
-    num_workers: 1
+    num_workers: 1 # cpu core number https://pytorch.org/docs/stable/data.html#single-and-multi-process-data-loading
 
 data:
   train_news : "./data/train/news.tsv"
