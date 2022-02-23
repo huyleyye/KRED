@@ -7,6 +7,7 @@ from utils.pytorchtools import *
 from utils.util import *
 from base.base_trainer import BaseTrainer
 from logger.logger import *
+from tqdm import tqdm
 
 
 
@@ -48,7 +49,8 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         all_loss = 0
-        for step, batch in enumerate(self.train_dataloader):
+        for step, batch in enumerate(tqdm(self.train_dataloader)):
+
             batch = real_batch(batch)
             out = self.model(batch['item1'], batch['item2'], self.config['trainer']['task'])[0]
             loss = self.criterion(out, torch.FloatTensor(batch['label']).cuda())
@@ -70,7 +72,7 @@ class Trainer(BaseTrainer):
         self.model.eval()
         y_pred = []
         start_list = list(range(0, len(self.test_data['label']), int(self.config['data_loader']['batch_size'])))
-        for start in start_list:
+        for start in tqdm(start_list):
             if start + int(self.config['data_loader']['batch_size']) <= len(self.test_data['label']):
                 end = start + int(self.config['data_loader']['batch_size'])
             else:
@@ -109,12 +111,12 @@ class Trainer(BaseTrainer):
         for epoch in range(self.start_epoch, self.epochs+1):
             print('training epoch ' + str(epoch) + ' / ' + str(self.epochs))
             self._train_epoch(epoch)
-            print('validating epoch ' + str(epoch) + ' / ' + str(self.epochs))
-            valid_score = self._valid_epoch(epoch)
-            valid_scores.append(valid_score)
-            early_stopping(valid_score, self.model)
-            if early_stopping.early_stop:
-                logger_train.info("Early stopping")
+            # print('validating epoch ' + str(epoch) + ' / ' + str(self.epochs))
+            # valid_score = self._valid_epoch(epoch)
+            # valid_scores.append(valid_score)
+            # early_stopping(valid_score, self.model)
+            # if early_stopping.early_stop:
+            #     logger_train.info("Early stopping")
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch)

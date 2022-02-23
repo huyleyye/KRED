@@ -7,6 +7,7 @@ from base.base_data_loader import *
 from torch.utils.data import Dataset, DataLoader, RandomSampler
 from utils.metrics import *
 from utils.util import *
+from tqdm import tqdm
 
 class NewsDataset(Dataset):
     def __init__(self, dic_data, transform=None):
@@ -181,7 +182,7 @@ def testing(test_data, config):
     model.eval()
     y_pred = []
     start_list = list(range(0, len(test_data['label']), config['data_loader']['batch_size']))
-    for start in start_list:
+    for start in tqdm(start_list):
         if start + config['data_loader']['batch_size'] <= len(test_data['label']):
             end = start + config['data_loader']['batch_size']
         else:

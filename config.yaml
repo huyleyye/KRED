@@ -1,9 +1,9 @@
 name: "KRED"
-n_gpu: 1
+n_gpu: 2
 data_loader:
     batch_size: 64
     shuffle: true
-    num_workers: 1 # cpu core number https://pytorch.org/docs/stable/data.html#single-and-multi-process-data-loading
+    num_workers: 16 # cpu core number https://pytorch.org/docs/stable/data.html#single-and-multi-process-data-loading
 
 data:
   train_news : "./data/train/news.tsv"
@@ -30,7 +30,7 @@ model:
 trainer:
   training_type: "single_task" # single_task or multi-task
   task: "user2item" # task should be within: user2item, item2item, vert_classify, pop_predict
-  epochs: 100
+  epochs: 30
   smooth_lamda: 10
   train_neg_num: 4
   save_dir: "./out/saved/"
