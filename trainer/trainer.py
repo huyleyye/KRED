@@ -83,7 +83,7 @@ class Trainer(BaseTrainer):
             y_pred.extend(out)
         truth = self.test_data['label']
         auc_score = cal_auc(truth, y_pred) # had to switch input parameters for it to work
-        print("auc socre: " + str(auc_score))
+        print("auc score: " + str(auc_score))
         return auc_score
 
     def _save_checkpoint(self, epoch, save_best=False):
@@ -106,11 +106,14 @@ class Trainer(BaseTrainer):
         logger_train = get_logger("train")
 
         logger_train.info("model training")
-        valid_scores = []
-        early_stopping = EarlyStopping(patience=self.config['trainer']['early_stop'], verbose=True)
+        # valid_scores = []
+        # early_stopping = EarlyStopping(patience=self.config['trainer']['early_stop'], verbose=True)
         for epoch in range(self.start_epoch, self.epochs+1):
             print('training epoch ' + str(epoch) + ' / ' + str(self.epochs))
             self._train_epoch(epoch)
+            if epoch % 5 == 0:
+                print('validating epoch ' + str(epoch) + ' / ' + str(self.epochs))
+                self._valid_epoch(epoch)
             # print('validating epoch ' + str(epoch) + ' / ' + str(self.epochs))
             # valid_score = self._valid_epoch(epoch)
             # valid_scores.append(valid_score)

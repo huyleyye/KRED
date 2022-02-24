@@ -159,14 +159,24 @@ def single_task_training(config, data):
         print("Error: task name error.")
 
     device, deviceids = prepare_device(config['n_gpu'])
+    if torch.cuda.device_count() > 1: # DataParallel
+        print("Using", torch.cuda.device_count(), "GPUs!")
+        model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
+                          relation_adj, entity_num, position_num, type_num)
+        model = torch.nn.DataParallel(model, device_ids=[0, 1])
+        model.to(device)
+        optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
 
-    model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
-                      relation_adj, entity_num, position_num, type_num).cuda()
+        trainer = Trainer(config, model.module, criterion, optimizer, device, train_data_loader, data[-1])
+        trainer.train()
+    else:
+        print("Single GPU Training.")
+        model = KREDModel(config, user_history_dict, doc_feature_dict, entity_embedding, relation_embedding, entity_adj,
+                          relation_adj, entity_num, position_num, type_num).cuda()
+        optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
 
-    optimizer = optim.Adam(model.parameters(), lr=config['optimizer']['lr'], weight_decay=0)
-
-    trainer = Trainer(config, model, criterion, optimizer, device, train_data_loader, data[-1])
-    trainer.train()
+        trainer = Trainer(config, model, criterion, optimizer, device, train_data_loader, data[-1])
+        trainer.train()
 
 
 def testing(test_data, config):
