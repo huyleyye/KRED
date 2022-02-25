@@ -373,6 +373,36 @@ def get_user2item_data(config):
 
     return train_data, dev_data
 
+
+def get_user2item_test_data(config):
+    dev_data = {}
+    session_id = []
+    user_id = []
+    news_id = []
+    label = []
+
+    with open(config['data']['valid_behavior'], 'r', encoding='utf-8') as fp_dev:
+        for line in fp_dev:
+            index, userid, imp_time, history, behavior = line.strip().split('\t')
+            behavior = behavior.split(' ')
+            for news in behavior:
+                newsid, news_label = news.split('-')
+                session_id.append(index)
+                user_id.append(userid + "_dev")
+                if news_label == "1":
+                    news_id.append(newsid)
+                    label.append(1.0)
+                else:
+                    news_id.append(newsid)
+                    label.append(0.0)
+
+    dev_data['item1'] = user_id
+    dev_data['session_id'] = session_id
+    dev_data['item2'] = news_id
+    dev_data['label'] = label
+
+    return dev_data
+
 def build_user_history(config):
     user_history_dict = {}
     # fp_train_behavior = open(config['data']['train_behavior'], 'r', encoding='utf-8')
